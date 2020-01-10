@@ -1,0 +1,11 @@
+*.mod
+*.o
+*.exe
+*.un~
+*.upd
+.nfs*
+*.swp
+*.swo
+*.p
+*.pdf
+*.dat
