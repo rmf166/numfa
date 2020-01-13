@@ -14,7 +14,7 @@ do
       echo 'set xtic auto' >> plot.p
       echo 'set ytic auto' >> plot.p
       echo 'set title "'${sol}', p = '${prb}', s = '${sw}'"' >> plot.p
-      echo 'set xlabel "{/Symbol D} (mfp)" enhanced' >> plot.p
+      echo 'set xlabel "{/Symbol t} (mfp)" enhanced' >> plot.p
       echo 'set ylabel "{/Symbol r}" enhanced' >> plot.p
       echo 'set yr [0:1]' >> plot.p
       echo 'set xr [0.01:100]' >> plot.p
@@ -33,7 +33,7 @@ do
       echo 'set terminal x11' >> plot.p
       gnuplot plot.p
     done
-  done  
+  done
 done
 for sol in $sols
 do
@@ -48,7 +48,7 @@ do
       echo 'set xtic auto' >> plot.p
       echo 'set ytic auto' >> plot.p
       echo 'set title "'${sol}'(lp), p = '${prb}', s = '${sw}'"' >> plot.p
-      echo 'set xlabel "{/Symbol D} (mfp)" enhanced' >> plot.p
+      echo 'set xlabel "{/Symbol t} (mfp)" enhanced' >> plot.p
       echo 'set ylabel "{/Symbol r}" enhanced' >> plot.p
       echo 'set yr [0:1]' >> plot.p
       echo 'set xr [0.01:100]' >> plot.p
@@ -62,12 +62,11 @@ do
       echo '        "result-lp'${prb}'-s'${sw}'-'${sol}'.dat" using 1:5 title "c=1.00" with lines linetype 1 lc rgb "violet"' >> plot.p
       echo 'set key left top' >> plot.p
       echo 'set terminal pdfcairo enhanced color dashed' >> plot.p
-      echo 'set output "plot-l'${prb}'='${sw}'-'${sol}'.pdf"' >> plot.p
+      echo 'set output "plot-l'${prb}'-'${sw}'-'${sol}'.pdf"' >> plot.p
       echo 'replot' >> plot.p
       echo 'set terminal x11' >> plot.p
       gnuplot plot.p
     done
-  done  
+  done
 done
 pdfunite plot*DD.pdf plot*SC.pdf plot*LD.pdf plot*LC.pdf final.pdf
-rm plot*.pdf

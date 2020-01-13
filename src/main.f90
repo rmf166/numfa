@@ -158,7 +158,7 @@
 
       ! solve fixed-source problem
 
-        eps=1.0e-05
+        eps=1.0e-06
         if (sol == 0) then
           call solve_dd(n,jmax,kmax,h,q,eps,sigt,sigs,mu,w,bc,phi,jnet,p,rho)
         elseif (sol == 1) then
@@ -402,6 +402,7 @@
 
           if (norm1 <= eps) exit 
           if (k > 100 .and. norm1 > 100.0_kr) exit
+
         enddo
 
         if (norm1 > eps) then
