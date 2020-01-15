@@ -1028,11 +1028,8 @@
           do n=1,nmax
             nleft=n-1
             nrite=n+1
-            if (n == 1) then
-              nleft=n
-            elseif (n == nmax) then
-              nrite=n
-            endif
+            if (n == 1) nleft=n
+            if (n == nmax) nrite=n
             dphil=0.5_kr*((phin(nleft)/phio(nleft))+(phin(n)/phio(n)))
             dphir=0.5_kr*((phin(nrite)/phio(nrite))+(phin(n)/phio(n)))
             do jj=1,p
