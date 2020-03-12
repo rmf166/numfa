@@ -925,6 +925,174 @@
 
       end subroutine solve_lc
 
+      subroutine solve_ld_mat(n,jmax,kmax,h,q,eps,sigt,sigs,mu,w,bc,phi,jnet,p,rho)
+
+        use global
+
+        implicit none
+
+        integer(4),    intent(in)    :: n
+        integer(4),    intent(in)    :: jmax
+        integer(4),    intent(in)    :: kmax
+        integer(4),    intent(in)    :: bc(2)
+        integer(4),    intent(in)    :: p
+        real(kind=kr), intent(in)    :: h
+        real(kind=kr), intent(in)    :: q
+        real(kind=kr), intent(in)    :: eps
+        real(kind=kr), intent(in)    :: sigt
+        real(kind=kr), intent(in)    :: sigs
+        real(kind=kr), intent(in)    :: mu(n/2)
+        real(kind=kr), intent(in)    :: w (n/2)
+        real(kind=kr), intent(out)   :: phi (jmax)
+        real(kind=kr), intent(out)   :: jnet(jmax+1)
+        real(kind=kr), intent(inout) :: rho
+
+        integer(4)                   :: sw
+        integer(4)                   :: j
+        integer(4)                   :: k
+        integer(4)                   :: m
+        real(kind=kr)                :: norm
+        real(kind=kr)                :: sum0
+        real(kind=kr)                :: sum1
+        real(kind=kr)                :: psi
+        real(kind=kr)                :: psil
+        real(kind=kr)                :: psi_in
+        real(kind=kr)                :: psi_out
+        real(kind=kr)                :: psi_bc(n/2)
+        real(kind=kr)                :: x(3)
+        real(kind=kr)                :: b(3)
+        real(kind=kr)                :: amat(3,3)
+        real(kind=kr)                :: fmat(3,3,n/2)
+        real(kind=kr)                :: bmat(3,3,n/2)
+        real(kind=kr), allocatable   :: phio(:)
+        real(kind=kr), allocatable   :: phil(:)
+        real(kind=kr), allocatable   :: s(:)
+        real(kind=kr), allocatable   :: sl(:)
+
+      ! pre-compute local matrix inverse
+
+        fmat=0.0_kr
+        bmat=0.0_kr
+
+        do m=1,n/2
+          amat(1,1)=mu(m)/h
+          amat(1,2)=sigt
+          amat(1,3)=0.0_kr
+          amat(2,1)=3.0_kr*mu(m)/h
+          amat(2,2)=-6.0_kr*mu(m)/h
+          amat(2,3)=sigt
+          amat(3,1)=1.0_kr
+          amat(3,2)=-1.0_kr
+          amat(3,3)=-1.0_kr
+          call invmat(3,amat)
+          fmat(1:3,1:3,m)=amat(1:3,1:3)
+          amat(1,1)=mu(m)/h
+          amat(1,2)=sigt
+          amat(1,3)=0.0_kr
+          amat(2,1)=-3.0_kr*mu(m)/h
+          amat(2,2)=6.0_kr*mu(m)/h
+          amat(2,3)=sigt
+          amat(3,1)=1.0_kr
+          amat(3,2)=-1.0_kr
+          amat(3,3)=1.0_kr
+          call invmat(3,amat)
+          bmat(1:3,1:3,m)=amat(1:3,1:3)
+        enddo
+
+      ! solve problem
+
+        allocate(phil(jmax))
+        allocate(s(jmax))
+        allocate(sl(jmax))
+
+        phi =1.0_kr
+        phil=0.0_kr
+        psi_in=0.0_kr
+        psi_bc=0.0_kr
+
+        allocate(phio(jmax))
+        do k=1,kmax
+          do sw=1,sweeps
+            do j=1,jmax
+              s (j)=0.5_kr*(sigs*phi (j)+q)
+              sl(j)=0.5_kr*(sigs*phil(j))
+            enddo
+            phio=phi
+            phi =0.0_kr
+            phil=0.0_kr
+            jnet=0.0_kr
+            !$omp parallel do private(j, psi_in, psi_out, psi, psil, b, amat, x) reduction(+: phi, phil, jnet)
+            do m=1,n/2
+              psi_in=psi_bc(m) ! left specular bc
+              if (bc(1) == 0) psi_in=0.0_kr
+              do j=1,jmax
+                jnet(j)=jnet(j)+psi_in*mu(m)*w(m)
+                b(1)=s(j)+psi_in*mu(m)/h
+                b(2)=sl(j)-psi_in*3.0_kr*mu(m)/h
+                b(3)=0.0_kr
+                amat(1:3,1:3)=fmat(1:3,1:3,m)
+                x=matmul(amat,b)
+                psi_out=x(1)
+                psi    =x(2)
+                psil   =x(3)
+                psi_in =psi_out
+                phi(j) =phi(j) +psi*w(m)
+                phil(j)=phil(j)+psil*w(m)
+              enddo
+              jnet(jmax+1)=jnet(jmax+1)+psi_in*mu(m)*w(m)
+              if (bc(2) == 0) psi_in=0.0_kr
+              jnet(jmax+1)=jnet(jmax+1)-psi_in*mu(m)*w(m)
+              do j=jmax,1,-1
+                b(1)=s(j)+psi_in*mu(m)/h
+                b(2)=sl(j)+psi_in*3.0_kr*mu(m)/h
+                b(3)=0.0_kr
+                amat(1:3,1:3)=bmat(1:3,1:3,m)
+                x=matmul(amat,b)
+                psi_out=x(1)
+                psi    =x(2)
+                psil   =x(3)
+                psi_in =psi_out
+                phi(j) =phi(j) +psi*w(m)
+                phil(j)=phil(j)+psil*w(m)
+                jnet(j)=jnet(j)-psi_in*mu(m)*w(m)
+              enddo
+              psi_bc(m)=psi_in
+            enddo
+            !$omp end parallel do
+          enddo
+
+          call cmdsa(sigt,sigs,h,p,jmax,phi,phio)
+
+          sum0=0.0_kr
+          sum1=0.0_kr
+          norm=0.0_kr
+          do j=1,jmax
+            sum0=sum0+phio(j)**2
+            sum1=sum1+phi(j)**2
+            norm=norm+(phi(j)-phio(j))**2
+          enddo
+          sum0=sqrt(sum0)
+          sum1=sqrt(sum1)
+          norm=sqrt(norm)
+
+          if (norm <= eps) exit 
+          if (k > 100 .and. norm > 100.0_kr) exit
+
+        enddo
+
+        if (norm > eps) then
+          rho=10.0_kr
+        else
+          rho=sum1/sum0
+        endif
+
+        deallocate(phio)
+        deallocate(phil)
+        deallocate(s)
+        deallocate(sl)
+
+      end subroutine solve_ld_mat
+
       subroutine cmfd(sigt,sigs,h,p,jmax,q,phi,phil,jnet)
 
         use global
@@ -1062,6 +1230,97 @@
 
       end subroutine cmfd
 
+      subroutine cmdsa(sigt,sigs,h,p,jmax,phi,phio)
+
+        use global
+
+        implicit none
+
+        integer(4),    intent(in)    :: p
+        integer(4),    intent(in)    :: jmax
+        real(kind=kr), intent(in)    :: sigt
+        real(kind=kr), intent(in)    :: sigs
+        real(kind=kr), intent(in)    :: h
+        real(kind=kr), intent(inout) :: phi (jmax)
+        real(kind=kr), intent(in)    :: phio(jmax)
+
+        integer(4)                   :: j
+        integer(4)                   :: jj
+        integer(4)                   :: n
+        integer(4)                   :: nmax
+        real(kind=kr)                :: dc
+        real(kind=kr)                :: sumphi
+        real(kind=kr)                :: sumphio
+        real(kind=kr)                :: siga
+        real(kind=kr), allocatable   :: phin(:)
+        real(kind=kr), allocatable   :: phino(:)
+        real(kind=kr), allocatable   :: s(:)
+        real(kind=kr), allocatable   :: a(:)
+        real(kind=kr), allocatable   :: b(:)
+        real(kind=kr), allocatable   :: c(:)
+
+        if (mod(jmax,p) /= 0) stop ' Fine mesh does not align with CMDSA.'
+
+        nmax=jmax/p
+
+        allocate(phin(nmax))
+        allocate(phino(nmax))
+        allocate(s(nmax))
+        allocate(a(nmax))
+        allocate(b(nmax))
+        allocate(c(nmax))
+        phin =0.0_kr
+        phino=0.0_kr
+        s    =0.0_kr
+        a    =0.0_kr
+        b    =0.0_kr
+        c    =0.0_kr
+
+        j=1
+        do n=1,nmax
+          sumphi =0.0_kr
+          sumphio=0.0_kr
+          do jj=1,p
+            sumphi =sumphi +phi (j)
+            sumphio=sumphio+phio(j)
+            j=j+1
+          enddo
+          phin (n)=sumphi /p
+          phino(n)=sumphio/p
+          s(n)    =sigs*p*h*(phin(n)-phino(n))
+        enddo
+
+        dc  =1.0_kr/(3.0_kr*p*h*sigt)
+        siga=sigt-sigs
+        b(1)=0.5_kr+dc+p*h*siga
+        c(1)=-dc
+        do n=2,nmax-1
+          a(n)=-dc
+          b(n)=2.0_kr*dc+p*h*siga
+          c(n)=-dc
+        enddo
+        a(nmax)=-dc
+        b(nmax)=dc+p*h*siga
+
+        call tdma(nmax,a,b,c,s)
+
+        j=1
+        do n=1,nmax
+          do jj=1,p
+            phi(j) =phi(j) +s(n)
+            j=j+1
+          enddo
+        enddo
+
+        deallocate(phin)
+        deallocate(phino)
+        deallocate(s)
+        deallocate(a)
+        deallocate(b)
+        deallocate(c)
+
+      end subroutine cmdsa
+
       subroutine tdma(n,a,b,c,d)
 
         use global
@@ -1102,5 +1361,35 @@
         enddo
 
       end subroutine tdma
+
+      subroutine invmat(m,a)
+
+        use global
+
+        implicit none
+
+        integer(4),    intent(in)       :: m
+        real(kind=kr)                   :: detinv
+        real(kind=kr)                   :: b(m,m)
+        real(kind=kr), intent(inout)    :: a(m,m)
+
+        ! Calculate the inverse determinant of the matrix
+        detinv = 1/(a(1,1)*a(2,2)*a(3,3) - a(1,1)*a(2,3)*a(3,2)&
+                  - a(1,2)*a(2,1)*a(3,3) + a(1,2)*a(2,3)*a(3,1)&
+                  + a(1,3)*a(2,1)*a(3,2) - a(1,3)*a(2,2)*a(3,1))
+
+        ! Calculate the inverse of the matrix
+        b(1,1) = +detinv * (a(2,2)*a(3,3) - a(2,3)*a(3,2))
+        b(2,1) = -detinv * (a(2,1)*a(3,3) - a(2,3)*a(3,1))
+        b(3,1) = +detinv * (a(2,1)*a(3,2) - a(2,2)*a(3,1))
+        b(1,2) = -detinv * (a(1,2)*a(3,3) - a(1,3)*a(3,2))
+        b(2,2) = +detinv * (a(1,1)*a(3,3) - a(1,3)*a(3,1))
+        b(3,2) = -detinv * (a(1,1)*a(3,2) - a(1,2)*a(3,1))
+        b(1,3) = +detinv * (a(1,2)*a(2,3) - a(1,3)*a(2,2))
+        b(2,3) = -detinv * (a(1,1)*a(2,3) - a(1,3)*a(2,1))
+        b(3,3) = +detinv * (a(1,1)*a(2,2) - a(1,2)*a(2,1))
+        a=b
+
+      end subroutine invmat
 
     end program main
