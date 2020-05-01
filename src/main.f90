@@ -297,8 +297,8 @@
         real(kind=kr), intent(in)    :: sigs
         real(kind=kr), intent(in)    :: mu(n/2)
         real(kind=kr), intent(in)    :: w (n/2)
-        real(kind=kr), intent(out)   :: phi (jmax)
-        real(kind=kr), intent(out)   :: jnet(jmax+1)
+        real(kind=kr), intent(inout) :: phi (jmax)
+        real(kind=kr), intent(inout) :: jnet(jmax+1)
         real(kind=kr), intent(inout) :: rho
 
         integer(4)                   :: sw
@@ -442,8 +442,8 @@
         real(kind=kr), intent(in)    :: sigs
         real(kind=kr), intent(in)    :: mu(n/2)
         real(kind=kr), intent(in)    :: w (n/2)
-        real(kind=kr), intent(out)   :: phi (jmax)
-        real(kind=kr), intent(out)   :: jnet(jmax+1)
+        real(kind=kr), intent(inout) :: phi (jmax)
+        real(kind=kr), intent(inout) :: jnet(jmax+1)
         real(kind=kr), intent(inout) :: rho
 
         integer(4)                   :: sw
@@ -602,8 +602,8 @@
         real(kind=kr), intent(in)    :: sigs
         real(kind=kr), intent(in)    :: mu(n/2)
         real(kind=kr), intent(in)    :: w (n/2)
-        real(kind=kr), intent(out)   :: phi (jmax)
-        real(kind=kr), intent(out)   :: jnet(jmax+1)
+        real(kind=kr), intent(inout) :: phi (jmax)
+        real(kind=kr), intent(inout) :: jnet(jmax+1)
         real(kind=kr), intent(inout) :: rho
 
         integer(4)                   :: sw
@@ -765,8 +765,8 @@
         real(kind=kr), intent(in)    :: sigs
         real(kind=kr), intent(in)    :: mu(n/2)
         real(kind=kr), intent(in)    :: w (n/2)
-        real(kind=kr), intent(out)   :: phi (jmax)
-        real(kind=kr), intent(out)   :: jnet(jmax+1)
+        real(kind=kr), intent(inout) :: phi (jmax)
+        real(kind=kr), intent(inout) :: jnet(jmax+1)
         real(kind=kr), intent(inout) :: rho
 
         integer(4)                   :: sw
@@ -943,8 +943,8 @@
         real(kind=kr), intent(in)    :: sigs
         real(kind=kr), intent(in)    :: mu(n/2)
         real(kind=kr), intent(in)    :: w (n/2)
-        real(kind=kr), intent(out)   :: phi (jmax)
-        real(kind=kr), intent(out)   :: jnet(jmax+1)
+        real(kind=kr), intent(inout) :: phi (jmax)
+        real(kind=kr), intent(inout) :: jnet(jmax+1)
         real(kind=kr), intent(inout) :: rho
 
         integer(4)                   :: sw
@@ -1105,8 +1105,8 @@
         real(kind=kr), intent(in)    :: sigs
         real(kind=kr), intent(in)    :: h
         real(kind=kr), intent(in)    :: q
-        real(kind=kr), intent(out)   :: phi (jmax)
-        real(kind=kr), intent(out)   :: phil(jmax)
+        real(kind=kr), intent(inout) :: phi (jmax)
+        real(kind=kr), intent(inout) :: phil(jmax)
         real(kind=kr), intent(in)    :: jnet(jmax+1)
 
         integer(4)                   :: j
@@ -1221,6 +1221,7 @@
 
         deallocate(phin)
         deallocate(phio)
+        deallocate(jn)
         deallocate(s)
         deallocate(dd)
         deallocate(cc)
