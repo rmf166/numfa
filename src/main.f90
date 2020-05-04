@@ -147,7 +147,7 @@
         bc(1)=0
         bc(2)=1
 
-      ! set cross sections from Kord's problem
+      ! set cross sections
 
         sigt=1.0_kr
         sigs=c*sigt
