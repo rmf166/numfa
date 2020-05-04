@@ -1177,7 +1177,7 @@
         enddo
         cc(nmax+1)=-(jn(nmax+1)-dd(nmax+1)*phio(nmax))/phio(nmax)
         siga=sigt-sigs
-        b(1)=dd(2)-cc(2)+dd(1)+cc(1)+ p*h*siga
+        b(1)=dd(2)-cc(2)+dd(1)+cc(1)+p*h*siga
         c(1)=-(dd(2)+cc(2))
         do n=2,nmax-1
           a(n)=-(dd(n)-cc(n))
