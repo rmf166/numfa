@@ -351,11 +351,11 @@
 
         allocate(phio(jmax))
         do k=1,kmax
+          phio=phi
           do sw=1,sweeps
             do j=1,jmax
               s(j)=0.5_kr*(sigs*phi(j)+q)
             enddo
-            phio=phi
             phi =0.0_kr
             jnet=0.0_kr
             !$omp parallel do private(j, psi_in, psi) reduction(+: phi, jnet)
@@ -510,11 +510,11 @@
 
         allocate(phio(jmax))
         do k=1,kmax
+          phio=phi
           do sw=1,sweeps
             do j=1,jmax
               s(j)=0.5_kr*(sigs*phi(j)+q)
             enddo
-            phio=phi
             phi =0.0_kr
             jnet=0.0_kr
             !$omp parallel do private(j, psi_in, psi) reduction(+: phi, jnet)
@@ -664,12 +664,12 @@
 
         allocate(phio(jmax))
         do k=1,kmax
+          phio=phi
           do sw=1,sweeps
             do j=1,jmax
               s (j)=0.5_kr*(sigs*phi (j)+q)
               sl(j)=0.5_kr*(sigs*phil(j))
             enddo
-            phio=phi
             phi =0.0_kr
             phil=0.0_kr
             jnet=0.0_kr
@@ -841,12 +841,12 @@
 
         allocate(phio(jmax))
         do k=1,kmax
+          phio=phi
           do sw=1,sweeps
             do j=1,jmax
               s (j)=0.5_kr*(sigs*phi (j)+q)
               sl(j)=0.5_kr*(sigs*phil(j))
             enddo
-            phio=phi
             phi =0.0_kr
             phil=0.0_kr
             jnet=0.0_kr
@@ -965,6 +965,7 @@
         real(kind=kr)                :: fmat(3,3,n/2)
         real(kind=kr)                :: bmat(3,3,n/2)
         real(kind=kr), allocatable   :: phio(:)
+        real(kind=kr), allocatable   :: phi0(:)
         real(kind=kr), allocatable   :: phil(:)
         real(kind=kr), allocatable   :: s(:)
         real(kind=kr), allocatable   :: sl(:)
@@ -1011,13 +1012,15 @@
         psi_bc=0.0_kr
 
         allocate(phio(jmax))
+        allocate(phi0(jmax))
         do k=1,kmax
+          phio=phi
           do sw=1,sweeps
             do j=1,jmax
               s (j)=0.5_kr*(sigs*phi (j)+q)
               sl(j)=0.5_kr*(sigs*phil(j))
             enddo
-            phio=phi
+            phi0=phi
             phi =0.0_kr
             phil=0.0_kr
             jnet=0.0_kr
@@ -1061,7 +1064,7 @@
             !$omp end parallel do
           enddo
 
-          call cmdsa(sigt,sigs,h,p,jmax,phi,phio)
+          call cmdsa(sigt,sigs,h,p,jmax,phi,phi0)
 
           sum0=0.0_kr
           sum1=0.0_kr
@@ -1231,7 +1234,7 @@
 
       end subroutine cmfd
 
-      subroutine cmdsa(sigt,sigs,h,p,jmax,phi,phio)
+      subroutine cmdsa(sigt,sigs,h,p,jmax,phi,phi0)
 
         use global
 
@@ -1243,7 +1246,7 @@
         real(kind=kr), intent(in)    :: sigs
         real(kind=kr), intent(in)    :: h
         real(kind=kr), intent(inout) :: phi (jmax)
-        real(kind=kr), intent(in)    :: phio(jmax)
+        real(kind=kr), intent(in)    :: phi0(jmax)
 
         integer(4)                   :: j
         integer(4)                   :: jj
@@ -1251,7 +1254,7 @@
         integer(4)                   :: nmax
         real(kind=kr)                :: dc
         real(kind=kr)                :: sumphi
-        real(kind=kr)                :: sumphio
+        real(kind=kr)                :: sumphi0
         real(kind=kr)                :: siga
         real(kind=kr), allocatable   :: phin(:)
         real(kind=kr), allocatable   :: phino(:)
@@ -1280,14 +1283,14 @@
         j=1
         do n=1,nmax
           sumphi =0.0_kr
-          sumphio=0.0_kr
+          sumphi0=0.0_kr
           do jj=1,p
             sumphi =sumphi +phi (j)
-            sumphio=sumphio+phio(j)
+            sumphi0=sumphi0+phi0(j)
             j=j+1
           enddo
           phin (n)=sumphi /p
-          phino(n)=sumphio/p
+          phino(n)=sumphi0/p
           s(n)    =sigs*p*h*(phin(n)-phino(n))
         enddo
 
