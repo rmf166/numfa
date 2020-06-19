@@ -1154,6 +1154,8 @@
         dd  =0.0_kr
         cc  =0.0_kr
         a   =0.0_kr
+        b   =0.0_kr
+        c   =0.0_kr
 
         j=1
         do n=1,nmax
@@ -1233,6 +1235,131 @@
         deallocate(c)
 
       end subroutine cmfd
+
+      subroutine multg(sigt,sigs,h,p,m,nmax,q,phi,ccc,ddd)
+
+        use global
+
+        implicit none
+
+        integer(4),    intent(in)    :: p
+        integer(4),    intent(in)    :: m
+        integer(4),    intent(in)    :: nmax
+        real(kind=kr), intent(in)    :: sigt
+        real(kind=kr), intent(in)    :: sigs
+        real(kind=kr), intent(in)    :: h
+        real(kind=kr), intent(in)    :: q
+        real(kind=kr), intent(inout) :: phi(nmax)
+        real(kind=kr), intent(in)    :: ccc(nmax+1)
+        real(kind=kr), intent(in)    :: ddd(nmax+1)
+
+        integer(4)                   :: j
+        integer(4)                   :: jj
+        integer(4)                   :: n
+        integer(4)                   :: nleft
+        integer(4)                   :: nrite
+        integer(4)                   :: mmax
+        real(kind=kr)                :: dphi
+        real(kind=kr)                :: dphil
+        real(kind=kr)                :: dphir
+        real(kind=kr)                :: dc
+        real(kind=kr)                :: sumphi
+        real(kind=kr)                :: siga
+        real(kind=kr)                :: xj
+        real(kind=kr), allocatable   :: phin(:)
+        real(kind=kr), allocatable   :: phio(:)
+        real(kind=kr), allocatable   :: jn(:)
+        real(kind=kr), allocatable   :: s(:)
+        real(kind=kr), allocatable   :: dd(:)
+        real(kind=kr), allocatable   :: cc(:)
+        real(kind=kr), allocatable   :: a(:)
+        real(kind=kr), allocatable   :: b(:)
+        real(kind=kr), allocatable   :: c(:)
+
+        if (mod(nmax,m) /= 0) stop ' CMFD mesh does not align with multig.'
+
+        mmax=nmax/m
+
+        allocate(phin(mmax))
+        allocate(phio(mmax))
+        allocate(jn(mmax+1))
+        allocate(s(mmax))
+        allocate(dd(mmax+1))
+        allocate(cc(mmax+1))
+        allocate(a(mmax))
+        allocate(b(mmax))
+        allocate(c(mmax))
+        phin=0.0_kr
+        jn  =0.0_kr
+        s   =0.0_kr
+        dd  =0.0_kr
+        cc  =0.0_kr
+        a   =0.0_kr
+        b   =0.0_kr
+        c   =0.0_kr
+
+        j=1
+        do n=1,mmax
+          if (j == 1) then
+            jn(1)=-ddd(1)*(phi(1)         )-ccc(1)*(phi(1)         )
+          else
+            jn(n)=-ddd(j)*(phi(j)-phi(j-1))-ccc(j)*(phi(j)+phi(j-1))
+          endif
+          sumphi=0.0_kr
+          do jj=1,m
+            sumphi=sumphi+phi(j)
+            j=j+1
+          enddo
+          phin(n)=sumphi/m
+          s(n)   =m*p*h*q
+        enddo
+        jn(mmax+1)=+ddd(nmax+1)*phi(nmax)-ccc(nmax+1)*phi(nmax)
+
+        phio = phin
+        dc   = 1.0_kr/(3.0_kr*m*p*h*sigt)
+        dd   = dc
+        dd(1)= dc/(0.5_kr*h+2.0_kr*dc)
+        n    = mmax+1
+        dd(n)= 0.0_kr
+        cc(1)= -(jn(1)+dd(1)*phio(1))/phio(1)
+        do n=2,mmax
+          cc(n)=-(jn(n)+dd(n)*(phio(n)-phio(n-1)))/(phio(n)+phio(n-1))
+        enddo
+        cc(mmax+1)=-(jn(mmax+1)-dd(mmax+1)*phio(mmax))/phio(mmax)
+        siga=sigt-sigs
+        b(1)=dd(2)-cc(2)+dd(1)+cc(1)+m*p*h*siga
+        c(1)=-(dd(2)+cc(2))
+        do n=2,mmax-1
+          a(n)=-(dd(n)-cc(n))
+          b(n)=dd(n+1)-cc(n+1)+dd(n)+cc(n)+m*p*h*siga
+          c(n)=-(dd(n+1)+cc(n+1))
+        enddo
+        n   =mmax
+        a(n)=-(dd(n)-cc(n))
+        b(n)=dd(n+1)-cc(n+1)+dd(n)+cc(n)+m*p*h*siga
+
+        phin=s
+        call tdma(mmax,a,b,c,phin)
+
+        j=1
+        do n=1,mmax
+          do jj=1,m
+            phi(j) =(phin(n)/phio(n))*phi(j)
+            j=j+1
+          enddo
+        enddo
+
+        deallocate(phin)
+        deallocate(phio)
+        deallocate(jn)
+        deallocate(s)
+        deallocate(dd)
+        deallocate(cc)
+        deallocate(a)
+        deallocate(b)
+        deallocate(c)
+
+      end subroutine multg
 
       subroutine cmdsa(sigt,sigs,h,p,jmax,phi,phi0)
 
