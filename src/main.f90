@@ -2,13 +2,13 @@
 
       implicit none
 
-      integer(4),    parameter     ::                    &
+      integer(4),    parameter       ::                  &
           sp = kind(1.0),                                &
           dp = selected_real_kind(2*precision(1.0_sp)),  &
           qp = selected_real_kind(2*precision(1.0_dp))
-      integer(4),    parameter     :: kr=qp
-      integer(4)                   :: sweeps
-      logical(4)                   :: linpro
+      integer(4),    parameter       :: kr=qp
+      integer(4)                     :: sweeps
+      logical(4)                     :: linpro
 
     end module global
 
@@ -1499,10 +1499,10 @@
 
         implicit none
 
-        integer(4),    intent(in)       :: m
-        real(kind=kr)                   :: detinv
-        real(kind=kr)                   :: b(m,m)
-        real(kind=kr), intent(inout)    :: a(m,m)
+        integer(4),    intent(in)    :: m
+        real(kind=kr)                :: detinv
+        real(kind=kr)                :: b(m,m)
+        real(kind=kr), intent(inout) :: a(m,m)
 
         ! Calculate the inverse determinant of the matrix
         detinv = 1/(a(1,1)*a(2,2)*a(3,3) - a(1,1)*a(2,3)*a(3,2)&
@@ -1522,5 +1522,45 @@
         a=b
 
       end subroutine invmat
+
+      subroutine get_dcor(sigt,h,p,n,mu,w,dcor)
+
+        use global
+
+        implicit none
+
+        integer(4),    intent(in)    :: p
+        integer(4),    intent(in)    :: n
+        real(kind=kr), intent(in)    :: sigt
+        real(kind=kr), intent(in)    :: h
+        real(kind=kr), intent(in)    :: mu(n/2)
+        real(kind=kr), intent(in)    :: w (n/2)
+        real(kind=kr), intent(out)   :: dcor
+
+        integer(4)                   :: m
+        real(kind=kr)                :: tau
+        real(kind=kr)                :: tau3
+        real(kind=kr)                :: tau5
+        real(kind=kr)                :: tau7
+        real(kind=kr)                :: alfa
+        real(kind=kr)                :: rho
+
+        dcor=0.0_kr
+        rho =0.0_kr
+        do m=1,n/2
+          tau=p*sigt*h/mu(m)
+          if (tau < 0.01_kr) then
+            tau3=tau *tau*tau
+            tau5=tau3*tau*tau
+            tau7=tau5*tau*tau
+            alfa=tau/6.0_kr-tau3/360.0_kr+tau5/15120.0_kr-tau7/604800.0_kr
+          else
+            alfa=1.0_kr/tanh(tau/2.0_kr)-2.0_kr/tau
+          endif
+          rho=rho+mu(m)*w(m)*alfa
+        enddo
+        dcor=0.5_kr*rho
+
+      end subroutine get_dcor
 
     end program main
