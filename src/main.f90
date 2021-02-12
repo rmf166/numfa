@@ -1181,7 +1181,7 @@
         phio = phin
         dc   = 1.0_kr/(3.0_kr*p*h*sigt)
         dd   = dc
-        dd(1)= dc/(0.5_kr*h+2.0_kr*dc)
+        dd(1)= dc/(0.5_kr+2.0_kr*dc)
         n    = nmax+1
         dd(n)= 0.0_kr
         cc(1)= -(jn(1)+dd(1)*phio(1))/phio(1)
@@ -1326,7 +1326,7 @@
         phio = phin
         dc   = 1.0_kr/(3.0_kr*m*p*h*sigt)
         dd   = dc
-        dd(1)= dc/(0.5_kr*h+2.0_kr*dc)
+        dd(1)= dc/(0.5_kr+2.0_kr*dc)
         n    = mmax+1
         dd(n)= 0.0_kr
         cc(1)= -(jn(1)+dd(1)*phio(1))/phio(1)
