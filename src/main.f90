@@ -382,7 +382,7 @@
             !$omp end parallel do
           enddo
 
-          call cmfd(sigt,sigs,h,p,jmax,q,phi,phil,jnet)
+          call cmfd(sigt,sigs,h,p,jmax,bc,q,phi,phil,jnet)
 
           norm1=0.0_kr
           do j=1,jmax
@@ -541,7 +541,7 @@
             !$omp end parallel do
           enddo
 
-          call cmfd(sigt,sigs,h,p,jmax,q,phi,phil,jnet)
+          call cmfd(sigt,sigs,h,p,jmax,bc,q,phi,phil,jnet)
 
           norm1=0.0_kr
           do j=1,jmax
@@ -706,7 +706,7 @@
             !$omp end parallel do
           enddo
 
-          call cmfd(sigt,sigs,h,p,jmax,q,phi,phil,jnet)
+          call cmfd(sigt,sigs,h,p,jmax,bc,q,phi,phil,jnet)
 
           norm1=0.0_kr
           do j=1,jmax
@@ -887,7 +887,7 @@
             !$omp end parallel do
           enddo
 
-          call cmfd(sigt,sigs,h,p,jmax,q,phi,phil,jnet)
+          call cmfd(sigt,sigs,h,p,jmax,bc,q,phi,phil,jnet)
 
           norm1=0.0_kr
           do j=1,jmax
@@ -1072,7 +1072,7 @@
             !$omp end parallel do
           enddo
 
-          call cmdsa(sigt,sigs,h,p,jmax,phi,phi0)
+          call cmdsa(sigt,sigs,h,p,jmax,bc,phi,phi0)
 
           sum0=0.0_kr
           sum1=0.0_kr
@@ -1104,7 +1104,7 @@
 
       end subroutine solve_ld_mat
 
-      subroutine cmfd(sigt,sigs,h,p,jmax,q,phi,phil,jnet)
+      subroutine cmfd(sigt,sigs,h,p,jmax,bc,q,phi,phil,jnet)
 
         use global
 
@@ -1112,6 +1112,7 @@
 
         integer(4),    intent(in)    :: p
         integer(4),    intent(in)    :: jmax
+        integer(4),    intent(in)    :: bc(2)
         real(kind=kr), intent(in)    :: sigt
         real(kind=kr), intent(in)    :: sigs
         real(kind=kr), intent(in)    :: h
@@ -1144,6 +1145,8 @@
         real(kind=kr), allocatable   :: c(:)
 
         if (mod(jmax,p) /= 0) stop ' Fine mesh does not align with CMFD.'
+        if (bc(1) /= 0) stop ' Only vacuum BC supported on left edge.'
+        if (bc(2) /= 1) stop ' Only reflective BC supported on right edge.'
 
         nmax=jmax/p
 
@@ -1244,7 +1247,7 @@
 
       end subroutine cmfd
 
-      subroutine multg(sigt,sigs,h,p,m,nmax,q,phi,ccc,ddd)
+      subroutine multg(sigt,sigs,h,p,m,nmax,bc,q,phi,ccc,ddd)
 
         use global
 
@@ -1253,6 +1256,7 @@
         integer(4),    intent(in)    :: p
         integer(4),    intent(in)    :: m
         integer(4),    intent(in)    :: nmax
+        integer(4),    intent(in)    :: bc(2)
         real(kind=kr), intent(in)    :: sigt
         real(kind=kr), intent(in)    :: sigs
         real(kind=kr), intent(in)    :: h
@@ -1285,6 +1289,8 @@
         real(kind=kr), allocatable   :: c(:)
 
         if (mod(nmax,m) /= 0) stop ' CMFD mesh does not align with multig.'
+        if (bc(1) /= 0) stop ' Only vacuum BC supported on left edge.'
+        if (bc(2) /= 1) stop ' Only reflective BC supported on right edge.'
 
         mmax=nmax/m
 
@@ -1369,7 +1375,7 @@
 
       end subroutine multg
 
-      subroutine cmdsa(sigt,sigs,h,p,jmax,phi,phi0)
+      subroutine cmdsa(sigt,sigs,h,p,jmax,bc,phi,phi0)
 
         use global
 
@@ -1377,6 +1383,7 @@
 
         integer(4),    intent(in)    :: p
         integer(4),    intent(in)    :: jmax
+        integer(4),    intent(in)    :: bc(2)
         real(kind=kr), intent(in)    :: sigt
         real(kind=kr), intent(in)    :: sigs
         real(kind=kr), intent(in)    :: h
@@ -1399,6 +1406,8 @@
         real(kind=kr), allocatable   :: c(:)
 
         if (mod(jmax,p) /= 0) stop ' Fine mesh does not align with CMDSA.'
+        if (bc(1) /= 0) stop ' Only vacuum BC supported on left edge.'
+        if (bc(2) /= 1) stop ' Only reflective BC supported on right edge.'
 
         nmax=jmax/p
 
