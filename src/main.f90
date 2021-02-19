@@ -71,9 +71,9 @@
                   do xn=1,19
                     if (0.1_kr <= tau .and. tau < 1.0_kr) then
                       x=50.0_kr
-                    elseif (1.0d0 <= tau .and. tau < 10.0d0) then
+                    elseif (1.0_kr <= tau .and. tau < 10.0_kr) then
                       x=500.0_kr
-                    elseif (10.0d0 <= tau .and. tau < 500.0d0) then
+                    elseif (10.0_kr <= tau .and. tau < 500.0_kr) then
                       x=5000.0_kr
                     endif
                     h(xn)=tau
