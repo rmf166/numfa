@@ -19,7 +19,7 @@ do
       else
         echo 'set title "'${sol}', p = '${prb}', s = '${sw}'"' >> plot.p
       fi
-      echo 'set xlabel "{/Symbol t} (mfp)" enhanced' >> plot.p
+      echo 'set xlabel "{/Symbol s_T}h" enhanced' >> plot.p
       echo 'set ylabel "{/Symbol r}" enhanced' >> plot.p
       echo 'set yr [0:1]' >> plot.p
       echo 'set xr [0.01:100]' >> plot.p
@@ -58,7 +58,7 @@ do
       else
         echo 'set title "'${sol}'(lp), p = '${prb}', s = '${sw}'"' >> plot.p
       fi
-      echo 'set xlabel "{/Symbol t} (mfp)" enhanced' >> plot.p
+      echo 'set xlabel "{/Symbol s_T}h" enhanced' >> plot.p
       echo 'set ylabel "{/Symbol r}" enhanced' >> plot.p
       echo 'set yr [0:1]' >> plot.p
       echo 'set xr [0.01:100]' >> plot.p
